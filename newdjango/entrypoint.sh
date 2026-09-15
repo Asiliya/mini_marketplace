@@ -20,4 +20,6 @@ if username and not User.objects.filter(username=username).exists():
     )
 EOF
 
+python manage.py seed_data
+
 exec python manage.py runserver 0.0.0.0:8000
