@@ -1,7 +1,7 @@
 from rest_framework import generics
 
 from .permissions import IsSelfOrAdmin
-from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
+from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer, MyTokenObtainPairSerializer
 from rest_framework.generics import GenericAPIView
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -13,6 +13,7 @@ User = get_user_model()
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 class UserViewSet(
     mixins.ListModelMixin,
@@ -45,3 +46,7 @@ class ChangePasswordView(GenericAPIView):
             {"detail": "Password updated successfully"},
             status=status.HTTP_200_OK
         )
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
