@@ -1,16 +1,20 @@
 from rest_framework import generics
 
-from .models import EmailVerificationToken
+from .models import EmailVerificationToken, PasswordResetToken
 from .permissions import IsSelfOrAdmin
-from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer, MyTokenObtainPairSerializer
+from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer, MyTokenObtainPairSerializer, \
+    ForgotPasswordSerializer, ResetPasswordSerializer
 from rest_framework.generics import GenericAPIView
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, mixins
+
+from .services import send_password_reset_email
+
 User = get_user_model()
 
 from rest_framework import viewsets
@@ -79,5 +83,68 @@ class VerifyEmailView(APIView):
 
         return Response(
             {"detail": "Email successfully verified."},
+            status=status.HTTP_200_OK
+        )
+
+
+class ForgotPasswordView(APIView):
+    @swagger_auto_schema(
+        request_body=ForgotPasswordSerializer
+    )
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            token = PasswordResetToken.objects.create(
+                user=user
+            )
+
+            send_password_reset_email(user, token)
+
+        return Response(
+            {
+                "detail": "If an account with this email exists, "
+                          "a password reset link has been sent."
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class ResetPasswordView(APIView):
+
+    def post(self, request, token):
+        reset_token = get_object_or_404(
+            PasswordResetToken,
+            token=token
+        )
+
+        if reset_token.is_expired():
+            reset_token.delete()
+
+            return Response(
+                {"detail": "Password reset link has expired."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = reset_token.user
+
+        user.set_password(
+            serializer.validated_data["password"]
+        )
+        user.save()
+
+        reset_token.delete()
+
+        return Response(
+            {"detail": "Password has been reset successfully."},
             status=status.HTTP_200_OK
         )

@@ -125,3 +125,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise AuthenticationFailed(
                 "Incorrect login or password"
             )
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password]
+    )
