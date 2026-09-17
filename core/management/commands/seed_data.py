@@ -59,6 +59,7 @@ class Command(BaseCommand):
 
             if created:
                 user.set_password(password)
+                user.is_verified = True
                 user.save()
 
             users[user.username] = user

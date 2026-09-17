@@ -16,7 +16,8 @@ if username and not User.objects.filter(username=username).exists():
     User.objects.create_superuser(
         username,
         email,
-        password
+        password,
+        is_verified=True,
     )
 EOF
 

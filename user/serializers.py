@@ -4,6 +4,9 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from user.models import EmailVerificationToken
+from user.services import send_verification_email
+
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,7 +35,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        # user = User.objects.create_user(**validated_data)
+        user = User.objects.create_user(
+            **validated_data,
+            is_verified=False
+        )
+
+        verification_token = EmailVerificationToken.objects.create(
+            user=user
+        )
+
+        send_verification_email(
+            user,
+            verification_token
+        )
+
         return user
 
 
@@ -65,9 +82,43 @@ class ChangePasswordSerializer(serializers.Serializer):
         return instance
 
 
+# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+#
+#     def validate(self, attrs):
+#         try:
+#             return super().validate(attrs)
+#         except AuthenticationFailed:
+#             raise AuthenticationFailed(
+#                 "Incorrect login or password"
+#             )
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
+        username = attrs.get("username")
+
+        user = User.objects.filter(username=username).first()
+
+        if user and not user.is_verified:
+            verification_token = (
+                user.verification_tokens
+                .order_by("-created_at")
+                .first()
+            )
+
+            if verification_token and verification_token.is_expired():
+                user.delete()
+
+                raise AuthenticationFailed(
+                    "Verification period has expired. "
+                    "Please register again."
+                )
+
+            raise AuthenticationFailed(
+                "Please verify your email before logging in."
+            )
+
         try:
             return super().validate(attrs)
         except AuthenticationFailed:
