@@ -6,6 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from user.models import EmailVerificationToken
 from user.services import send_verification_email
+from user.tasks import send_verification_email_task
 
 User = get_user_model()
 
@@ -45,9 +46,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             user=user
         )
 
-        send_verification_email(
-            user,
-            verification_token
+        # send_verification_email(
+        #     user,
+        #     verification_token
+        # )
+
+        send_verification_email_task.delay(
+            verification_token.id
         )
 
         return user
