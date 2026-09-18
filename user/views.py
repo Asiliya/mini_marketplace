@@ -14,6 +14,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, mixins
 
 from .services import send_password_reset_email
+from .tasks import send_password_reset_email_task
 
 User = get_user_model()
 
@@ -105,7 +106,11 @@ class ForgotPasswordView(APIView):
                 user=user
             )
 
-            send_password_reset_email(user, token)
+            # send_password_reset_email(user, token)
+
+            send_password_reset_email_task.delay(
+                token.id
+            )
 
         return Response(
             {
