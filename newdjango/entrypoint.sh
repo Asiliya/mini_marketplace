@@ -5,6 +5,8 @@ python manage.py makemigrations
 
 python manage.py migrate
 
+python manage.py collectstatic --noinput
+
 python manage.py shell <<EOF
 import os
 from django.contrib.auth import get_user_model
@@ -23,4 +25,5 @@ EOF
 
 python manage.py seed_data
 
-exec python manage.py runserver 0.0.0.0:8000
+#exec python manage.py runserver 0.0.0.0:8000
+exec gunicorn newdjango.wsgi:application --bind 0.0.0.0:8000
