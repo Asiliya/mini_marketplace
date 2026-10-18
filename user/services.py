@@ -4,8 +4,11 @@ from django.core.mail import send_mail
 
 def send_verification_email(user, token):
     verification_url = (
-        f"http://127.0.0.1:8000/verify-email/{token.token}/"
+        f"http://minimarketprod.cx.ua/verify-email/{token.token}/"
     )
+    # verification_url = (
+    #     f"http://127.0.0.1:8000/verify-email/{token.token}/"
+    # )
 
     send_mail(
         subject="Verify your email",
@@ -21,8 +24,11 @@ def send_verification_email(user, token):
 
 def send_password_reset_email(user, token):
     reset_url = (
-        f"http://127.0.0.1:8000/reset-password/{token.token}/"
+        f"http://minimarketprod.cx.ua/reset-password/{token.token}/"
     )
+    # reset_url = (
+    #     f"http://127.0.0.1:8000/reset-password/{token.token}/"
+    # )
 
     send_mail(
         subject="Reset your password",
