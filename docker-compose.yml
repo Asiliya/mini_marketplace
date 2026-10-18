@@ -29,6 +29,12 @@ services:
       - web
     restart: unless-stopped
 
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+
   celery:
     build: .
     container_name: marketplace_celery
