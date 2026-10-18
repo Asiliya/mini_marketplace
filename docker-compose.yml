@@ -25,6 +25,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - static_volume:/marketplace_app/staticfiles
+      - certbot_www:/var/www/certbot
     depends_on:
       - web
     restart: unless-stopped
