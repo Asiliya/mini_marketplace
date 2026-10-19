@@ -1,0 +1,27 @@
+name: Deploy Django Marketplace
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd "${{ secrets.VPS_DEPLOY_PATH }}"
+            git pull origin main
+            docker compose up -d --build
+            docker compose exec -T web python manage.py migrate
